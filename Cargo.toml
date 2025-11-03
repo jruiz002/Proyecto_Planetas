@@ -1,0 +1,12 @@
+[package]
+name = "solar_system_simulator"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+raylib = "5.0"
+rand = "0.8"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
