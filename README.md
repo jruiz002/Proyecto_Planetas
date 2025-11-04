@@ -107,7 +107,7 @@ El renderer implementa:
 
 ```bash
 # Clonar el repositorio
-git clone [URL_DEL_REPOSITORIO]
+git clone https://github.com/jruiz002/Proyecto_Planetas.git
 cd Proyecto_Planetas
 
 # Compilar el proyecto
@@ -133,8 +133,6 @@ cargo run --release
 | Detección de colisiones | 10 | ✅ |
 | Movimiento 3D de cámara | 40 | ✅ |
 | Renderizado de órbitas | 20 | ✅ |
-
-**Total Estimado: 230/230 puntos**
 
 ## 🎥 Video Demostración
 
@@ -171,11 +169,3 @@ Este proyecto fue desarrollado como parte del curso de Gráficas por Computadora
 - Arquitectura de software para gráficos
 
 El código está estructurado de manera modular para facilitar el mantenimiento y la extensión de funcionalidades.
-
-## 🤝 Contribuciones
-
-Este es un proyecto académico. Para sugerencias o mejoras, por favor crear un issue en el repositorio.
-
-## 📄 Licencia
-
-Este proyecto es de uso académico y educativo.
