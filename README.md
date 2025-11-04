@@ -21,6 +21,10 @@ Un simulador del sistema solar implementado en Rust usando un software renderer 
 - ✅ **Lunas**: Algunos planetas tienen lunas que orbitan a su alrededor
 - ✅ **Anillos**: Planetas con sistemas de anillos
 
+## 🎥 Video Demostración
+
+https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
+
 ## 🎮 Controles
 
 ### Movimiento de Cámara
@@ -134,9 +138,6 @@ cargo run --release
 | Movimiento 3D de cámara | 40 | ✅ |
 | Renderizado de órbitas | 20 | ✅ |
 
-## 🎥 Video Demostración
-
-https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
 
 ## 🔧 Características Técnicas Destacadas
 
