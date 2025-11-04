@@ -136,7 +136,7 @@ cargo run --release
 
 ## 🎥 Video Demostración
 
-[Aquí se incluirá el video demostrativo del sistema solar]
+https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
 
 ## 🔧 Características Técnicas Destacadas
 
