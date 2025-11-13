@@ -12,9 +12,12 @@ Un simulador del sistema solar implementado en Rust usando un software renderer 
 - ✅ **Cámara 3D**: Sistema de cámara completamente funcional con movimiento en 3 dimensiones
 
 ### Características Avanzadas
-- ✅ **Instant Warping**: Teletransporte instantáneo a diferentes planetas (teclas 1-5)
-- ✅ **Warping Animado**: Efecto de animación suave durante el teletransporte
-- ✅ **Nave Espacial**: Nave personalizada que sigue a la cámara
+- ✅ **Instant Warping**: Teletransporte instantáneo a diferentes planetas (teclas 1-5 con Shift)
+- ✅ **Warping Animado**: Efecto de animación suave durante el teletransporte (teclas 1-5)
+- ✅ **Warp al Sol**: Teletransporte rápido al sol (tecla 0)
+- ✅ **Vista Panorámica**: Warp a vista general del sistema (tecla 9)
+- ✅ **Nave Espacial 3D**: Nave modelada personalizada que sigue a la cámara
+- ✅ **Efectos de Motor**: Resplandor animado en los motores de la nave
 - ✅ **Skybox**: Campo de estrellas en el horizonte
 - ✅ **Detección de Colisiones**: La cámara/nave evita atravesar los cuerpos celestes
 - ✅ **Órbitas Visibles**: Renderizado de las órbitas planetarias (tecla O)
@@ -35,12 +38,12 @@ https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
 - **Ctrl**: Ralentizar movimiento
 
 ### Funciones Especiales
-- **1-5**: Teletransporte instantáneo a planetas específicos
+- **W**: Alternar modo warp
+- **0**: Teletransporte al Sol
+- **9**: Vista panorámica del sistema
+- **1-5**: Teletransporte animado a planetas específicos
+- **Shift+1-5**: Teletransporte instantáneo (sin animación)
 - **O**: Mostrar/ocultar órbitas planetarias
-- **W**: Alternar modo wireframe
-- **+/-**: Acelerar/ralentizar tiempo
-- **R**: Reiniciar cámara
-- **ESC**: Salir
 
 ## 🪐 Cuerpos Celestes
 
@@ -80,9 +83,9 @@ https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
 
 ### Módulos Principales
 
-- **`main.rs`**: Punto de entrada y bucle principal del juego
+- **`main.rs`**: Punto de entrada, bucle principal y manejo de entrada
 - **`matrix.rs`**: Implementación de matrices 4x4 y transformaciones 3D
-- **`camera.rs`**: Sistema de cámara con controles orbitales y movimiento 3D
+- **`camera.rs`**: Sistema de cámara con controles orbitales, movimiento 3D y warping
 - **`celestial_body.rs`**: Definición y comportamiento de cuerpos celestes
 - **`solar_system.rs`**: Gestión del sistema solar completo
 - **`renderer.rs`**: Software renderer personalizado con proyección 3D
@@ -132,11 +135,11 @@ cargo run --release
 | Planetas/estrellas/lunas (5 cuerpos) | 50 | ✅ |
 | Instant warping | 10 | ✅ |
 | Efecto de warping animado | 10 | ✅ |
-| Nave espacial personalizada | 30 | ✅ |
 | Skybox con estrellas | 10 | ✅ |
 | Detección de colisiones | 10 | ✅ |
 | Movimiento 3D de cámara | 40 | ✅ |
 | Renderizado de órbitas | 20 | ✅ |
+| **TOTAL** | **200** | ✅ |
 
 
 ## 🔧 Características Técnicas Destacadas

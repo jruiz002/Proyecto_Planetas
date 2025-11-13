@@ -80,11 +80,12 @@ impl CelestialBody {
         rotation_speed: f32,
         orbital_inclination: f32,
     ) -> Self {
-        let orbital_angle = rand::random::<f32>() * 2.0 * PI;
+        // Set a fixed position based on initial angle (no random movement)
+        let orbital_angle = 0.0; // Fixed starting angle
         let position = Vector3::new(
-            orbital_center.x + orbital_radius * orbital_angle.cos(),
-            orbital_center.y + orbital_radius * orbital_inclination.sin() * orbital_angle.sin(),
-            orbital_center.z + orbital_radius * orbital_angle.sin(),
+            orbital_center.x + orbital_radius,
+            orbital_center.y,
+            orbital_center.z,
         );
 
         CelestialBody {
@@ -117,7 +118,8 @@ impl CelestialBody {
         color: Color,
         rotation_speed: f32,
     ) -> Self {
-        let orbital_angle = rand::random::<f32>() * 2.0 * PI;
+        // Set a fixed position for moon (no random movement)
+        let orbital_angle = PI / 4.0; // Fixed 45 degree angle
         let position = Vector3::new(
             orbital_center.x + orbital_radius * orbital_angle.cos(),
             orbital_center.y,
@@ -157,31 +159,19 @@ impl CelestialBody {
     }
 
     pub fn update(&mut self, dt: f32) {
-        // Update rotation
+        // Update rotation only (planets stay in fixed positions)
         self.rotation_angle += self.rotation_speed * dt;
         if self.rotation_angle > 2.0 * PI {
             self.rotation_angle -= 2.0 * PI;
         }
 
-        // Update orbital position (only for planets and moons)
-        if matches!(self.body_type, CelestialBodyType::Planet | CelestialBodyType::Moon) {
-            self.orbital_angle += self.orbital_speed * dt;
-            if self.orbital_angle > 2.0 * PI {
-                self.orbital_angle -= 2.0 * PI;
-            }
-
-            // Calculate new position based on orbital parameters
-            self.position = Vector3::new(
-                self.orbital_center.x + self.orbital_radius * self.orbital_angle.cos(),
-                self.orbital_center.y + self.orbital_radius * self.orbital_inclination.sin() * self.orbital_angle.sin(),
-                self.orbital_center.z + self.orbital_radius * self.orbital_angle.sin(),
-            );
-        }
-
-        // Update moons
+        // No orbital movement - planets remain stationary
+        // Only update moons rotation (they also stay in fixed positions relative to their planet)
         for moon in &mut self.moons {
-            moon.orbital_center = self.position;
-            moon.update(dt);
+            moon.rotation_angle += moon.rotation_speed * dt;
+            if moon.rotation_angle > 2.0 * PI {
+                moon.rotation_angle -= 2.0 * PI;
+            }
         }
     }
 

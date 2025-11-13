@@ -451,28 +451,6 @@ impl Renderer {
         }
     }
 
-    pub fn render_ship(&self, d: &mut RaylibDrawHandle, camera: &Camera) {
-        // Simple ship representation near the camera
-        let ship_offset = Vector3::new(5.0, -2.0, -8.0);
-        let ship_pos = camera.get_position() + ship_offset;
-        
-        let view_matrix = camera.get_view_matrix();
-        let screen_pos = self.world_to_screen(ship_pos, &view_matrix);
-        
-        if self.is_point_on_screen(screen_pos) {
-            // Draw a simple triangular ship
-            let size = 8.0;
-            let vertices = [
-                Vector2::new(screen_pos.x, screen_pos.y - size),
-                Vector2::new(screen_pos.x - size * 0.7, screen_pos.y + size * 0.5),
-                Vector2::new(screen_pos.x + size * 0.7, screen_pos.y + size * 0.5),
-            ];
-            
-            d.draw_triangle(vertices[0], vertices[1], vertices[2], Color::LIGHTGRAY);
-            d.draw_triangle_lines(vertices[0], vertices[1], vertices[2], Color::WHITE);
-        }
-    }
-
     fn world_to_screen(&self, world_pos: Vector3, view_matrix: &Matrix) -> Vector3 {
         // Transform world position through view, projection, and viewport matrices
         let view_pos = view_matrix.transform_point(world_pos);

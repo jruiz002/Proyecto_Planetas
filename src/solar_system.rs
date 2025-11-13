@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 use raylib::prelude::*;
-use crate::celestial_body::{CelestialBody, CelestialBodyType};
+use crate::celestial_body::CelestialBody;
+use std::f32::consts::PI;
 
 pub struct SolarSystem {
     pub star: CelestialBody,
@@ -28,19 +29,19 @@ impl SolarSystem {
     }
 
     fn create_planets(&mut self) {
-        // Planet 1: Rocky inner planet (Mercury-like)
+        // Planet 1: Rocky inner planet (Mercury-like) - at 0 degrees
         let mut planet1 = CelestialBody::new_planet(
             "Pyrion".to_string(),
             Vector3::new(0.0, 0.0, 0.0),
             40.0,   // orbital radius
-            2.0,    // orbital speed
+            2.0,    // orbital speed (not used in static mode)
             3.0,    // radius
             Color::new(139, 69, 19, 255), // Brown
             3.0,    // rotation speed
             0.1,    // orbital inclination
         );
 
-        // Planet 2: Earth-like planet with moon
+        // Planet 2: Earth-like planet with moon - at 72 degrees
         let mut planet2 = CelestialBody::new_planet(
             "Verdania".to_string(),
             Vector3::new(0.0, 0.0, 0.0),
@@ -51,6 +52,9 @@ impl SolarSystem {
             2.0,    // rotation speed
             0.05,   // orbital inclination
         );
+        // Manually set position for planet2 at 72 degrees
+        let angle2 = 72.0_f32.to_radians();
+        planet2.position = Vector3::new(70.0 * angle2.cos(), 0.0, 70.0 * angle2.sin());
 
         // Add moon to planet2
         let moon1 = CelestialBody::new_moon(
@@ -64,7 +68,7 @@ impl SolarSystem {
         );
         planet2.add_moon(moon1);
 
-        // Planet 3: Gas giant with rings (Saturn-like)
+        // Planet 3: Gas giant with rings - at 144 degrees
         let mut planet3 = CelestialBody::new_planet(
             "Gigantus".to_string(),
             Vector3::new(0.0, 0.0, 0.0),
@@ -75,6 +79,9 @@ impl SolarSystem {
             1.5,    // rotation speed
             0.15,   // orbital inclination
         );
+        // Manually set position for planet3 at 144 degrees
+        let angle3 = 144.0_f32.to_radians();
+        planet3.position = Vector3::new(120.0 * angle3.cos(), 0.0, 120.0 * angle3.sin());
 
         // Add rings to planet3
         planet3.add_rings(10.0, 15.0, Color::new(200, 200, 200, 100));
@@ -102,7 +109,7 @@ impl SolarSystem {
         );
         planet3.add_moon(moon3);
 
-        // Planet 4: Ice planet (Neptune-like)
+        // Planet 4: Ice planet - at 216 degrees
         let mut planet4 = CelestialBody::new_planet(
             "Glacialis".to_string(),
             Vector3::new(0.0, 0.0, 0.0),
@@ -113,8 +120,11 @@ impl SolarSystem {
             1.0,    // rotation speed
             0.2,    // orbital inclination
         );
+        // Manually set position for planet4 at 216 degrees
+        let angle4 = 216.0_f32.to_radians();
+        planet4.position = Vector3::new(180.0 * angle4.cos(), 0.0, 180.0 * angle4.sin());
 
-        // Planet 5: Distant dwarf planet
+        // Planet 5: Distant dwarf planet - at 288 degrees
         let mut planet5 = CelestialBody::new_planet(
             "Plutonix".to_string(),
             Vector3::new(0.0, 0.0, 0.0),
@@ -125,6 +135,9 @@ impl SolarSystem {
             0.8,    // rotation speed
             0.3,    // orbital inclination
         );
+        // Manually set position for planet5 at 288 degrees
+        let angle5 = 288.0_f32.to_radians();
+        planet5.position = Vector3::new(250.0 * angle5.cos(), 0.0, 250.0 * angle5.sin());
 
         // Add planets to the system
         self.planets.push(planet1);

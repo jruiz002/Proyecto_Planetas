@@ -5,7 +5,6 @@ mod renderer;
 mod solar_system;
 
 use raylib::prelude::*;
-use std::f32::consts::PI;
 
 use crate::camera::Camera;
 use crate::solar_system::SolarSystem;
@@ -33,11 +32,10 @@ fn main() {
     let mut solar_system = SolarSystem::new();
     
     // Initialize renderer
-    let mut renderer = Renderer::new(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
+    let renderer = Renderer::new(SCREEN_WIDTH as f32, SCREEN_HEIGHT as f32);
 
     let mut time = 0.0f32;
     let mut show_orbits = true;
-    let mut show_ship = true;
     let mut warp_mode = false;
     let mut selected_planet = 0;
 
@@ -46,7 +44,7 @@ fn main() {
         time += dt;
 
         // Handle input
-        handle_input(&mut rl, &mut camera, &mut show_orbits, &mut show_ship, 
+        handle_input(&mut rl, &mut camera, &mut show_orbits, 
                     &mut warp_mode, &mut selected_planet, &solar_system, dt);
 
         // Update solar system
@@ -65,13 +63,8 @@ fn main() {
         // Render solar system
         renderer.render_solar_system(&mut d, &solar_system, &camera, show_orbits);
 
-        // Render ship if enabled
-        if show_ship {
-            renderer.render_ship(&mut d, &camera);
-        }
-
         // Render UI
-        render_ui(&mut d, &camera, show_orbits, show_ship, warp_mode, selected_planet);
+        render_ui(&mut d, &camera, show_orbits, warp_mode, selected_planet);
     }
 }
 
@@ -79,7 +72,6 @@ fn handle_input(
     rl: &mut RaylibHandle,
     camera: &mut Camera,
     show_orbits: &mut bool,
-    show_ship: &mut bool,
     warp_mode: &mut bool,
     selected_planet: &mut usize,
     solar_system: &SolarSystem,
@@ -101,18 +93,28 @@ fn handle_input(
         *show_orbits = !*show_orbits;
     }
 
-    if rl.is_key_pressed(KeyboardKey::KEY_S) {
-        *show_ship = !*show_ship;
-    }
-
     if rl.is_key_pressed(KeyboardKey::KEY_W) {
         *warp_mode = !*warp_mode;
+    }
+
+    // Warp al sol (tecla 0)
+    if rl.is_key_pressed(KeyboardKey::KEY_ZERO) {
+        if *warp_mode {
+            camera.warp_to_sun();
+        }
+    }
+
+    // Vista general del sistema (tecla 9)
+    if rl.is_key_pressed(KeyboardKey::KEY_NINE) {
+        if *warp_mode {
+            camera.warp_to_system_overview();
+        }
     }
 
     // Planet selection for warping
     if rl.is_key_pressed(KeyboardKey::KEY_ONE) {
         *selected_planet = 0;
-        if *warp_mode {
+        if *warp_mode && solar_system.planets.len() > *selected_planet {
             camera.warp_to_planet(&solar_system.planets[*selected_planet]);
         }
     }
@@ -138,6 +140,25 @@ fn handle_input(
         *selected_planet = 4;
         if *warp_mode {
             camera.warp_to_planet(&solar_system.planets[*selected_planet]);
+        }
+    }
+
+    // Warps instantaneos (sin animacion) con Shift
+    if rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) || rl.is_key_down(KeyboardKey::KEY_RIGHT_SHIFT) {
+        if rl.is_key_pressed(KeyboardKey::KEY_ONE) && solar_system.planets.len() > 0 {
+            camera.instant_warp_to_planet(&solar_system.planets[0]);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_TWO) && solar_system.planets.len() > 1 {
+            camera.instant_warp_to_planet(&solar_system.planets[1]);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_THREE) && solar_system.planets.len() > 2 {
+            camera.instant_warp_to_planet(&solar_system.planets[2]);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_FOUR) && solar_system.planets.len() > 3 {
+            camera.instant_warp_to_planet(&solar_system.planets[3]);
+        }
+        if rl.is_key_pressed(KeyboardKey::KEY_FIVE) && solar_system.planets.len() > 4 {
+            camera.instant_warp_to_planet(&solar_system.planets[4]);
         }
     }
 
@@ -171,61 +192,27 @@ fn render_ui(
     d: &mut RaylibDrawHandle,
     camera: &Camera,
     show_orbits: bool,
-    show_ship: bool,
     warp_mode: bool,
-    selected_planet: usize,
+    _selected_planet: usize,
 ) {
     let y_offset = 10;
     let mut current_y = y_offset;
 
     d.draw_text("Solar System Simulator", 10, current_y, 20, Color::WHITE);
-    current_y += 25;
+    current_y += 30;
 
-    d.draw_text("Controls:", 10, current_y, 16, Color::YELLOW);
-    current_y += 20;
-
-    d.draw_text("Mouse + Left Click: Rotate camera", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("Mouse Wheel: Zoom", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("WASD: Move camera", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("Q/E: Move up/down", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("O: Toggle orbits", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("S: Toggle ship", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("W: Toggle warp mode", 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text("1-5: Select/Warp to planet", 10, current_y, 12, Color::WHITE);
-    current_y += 25;
-
-    // Status
-    d.draw_text("Status:", 10, current_y, 16, Color::YELLOW);
-    current_y += 20;
-
+    // Solo mostrar información de estado esencial
     let orbits_text = if show_orbits { "ON" } else { "OFF" };
-    d.draw_text(&format!("Orbits: {}", orbits_text), 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    let ship_text = if show_ship { "ON" } else { "OFF" };
-    d.draw_text(&format!("Ship: {}", ship_text), 10, current_y, 12, Color::WHITE);
-    current_y += 15;
+    d.draw_text(&format!("Orbits: {}", orbits_text), 10, current_y, 14, Color::WHITE);
+    current_y += 20;
 
     let warp_text = if warp_mode { "ON" } else { "OFF" };
-    d.draw_text(&format!("Warp Mode: {}", warp_text), 10, current_y, 12, Color::WHITE);
-    current_y += 15;
+    //d.draw_text(&format!("Warp Mode: {}", warp_text), 10, current_y, 14, Color::WHITE);
+    current_y += 20;
 
-    d.draw_text(&format!("Selected Planet: {}", selected_planet + 1), 10, current_y, 12, Color::WHITE);
-    current_y += 15;
-
-    d.draw_text(&format!("Camera Distance: {:.1}", camera.distance), 10, current_y, 12, Color::WHITE);
+    if camera.is_warping {
+        d.draw_text("WARPING...", 10, current_y, 16, Color::YELLOW);
+        current_y += 20;
+        d.draw_text(&format!("Progress: {:.1}%", camera.warp_progress * 100.0), 10, current_y, 14, Color::WHITE);
+    }
 }

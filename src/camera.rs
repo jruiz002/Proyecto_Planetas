@@ -157,12 +157,78 @@ impl Camera {
             self.warp_start_pos = self.eye;
             
             // Position camera at a good distance from the planet
-            let warp_distance = planet.radius * 5.0;
-            let offset = Vector3::new(warp_distance, warp_distance * 0.5, warp_distance);
-            self.warp_target_pos = planet.position + offset;
+            let warp_distance = planet.radius * 4.0 + 20.0; // Distancia mas consistente
             
+            // Calcular una posicion que tenga buena vista del planeta
+            let offset_angle = 0.5f32; // Angulo para una vista diagonal
+            let offset = Vector3::new(
+                warp_distance * offset_angle.cos(),
+                warp_distance * 0.3, // Altura moderada
+                warp_distance * offset_angle.sin(),
+            );
+            
+            self.warp_target_pos = planet.position + offset;
             self.target = planet.position;
-            self.distance = warp_distance * 1.2;
+            self.distance = warp_distance;
+            
+            self.is_warping = true;
+            self.warp_progress = 0.0;
+        }
+    }
+
+    // Nueva funcion: warp instantaneo (sin animacion)
+    pub fn instant_warp_to_planet(&mut self, planet: &CelestialBody) {
+        let warp_distance = planet.radius * 4.0 + 20.0;
+        let offset_angle = 0.5f32;
+        let offset = Vector3::new(
+            warp_distance * offset_angle.cos(),
+            warp_distance * 0.3,
+            warp_distance * offset_angle.sin(),
+        );
+        
+        self.eye = planet.position + offset;
+        self.target = planet.position;
+        self.distance = warp_distance;
+        
+        // Actualizar angulos de la camara
+        let direction = normalize_vector(self.eye - self.target);
+        self.yaw = direction.z.atan2(direction.x);
+        self.pitch = direction.y.asin().clamp(-PI/2.0 + 0.1, PI/2.0 - 0.1);
+        
+        self.is_warping = false;
+        self.warp_progress = 0.0;
+    }
+
+    // Warp al sol (estrella central)
+    pub fn warp_to_sun(&mut self) {
+        if !self.is_warping {
+            self.warp_start_pos = self.eye;
+            
+            let sun_position = Vector3::new(0.0, 0.0, 0.0); // Asumiendo que el sol esta en el centro
+            let warp_distance = 80.0; // Distancia fija para el sol
+            
+            let offset = Vector3::new(warp_distance, warp_distance * 0.4, warp_distance * 0.6);
+            self.warp_target_pos = sun_position + offset;
+            self.target = sun_position;
+            self.distance = warp_distance;
+            
+            self.is_warping = true;
+            self.warp_progress = 0.0;
+        }
+    }
+
+    // Warp a vista general del sistema solar
+    pub fn warp_to_system_overview(&mut self) {
+        if !self.is_warping {
+            self.warp_start_pos = self.eye;
+            
+            let system_center = Vector3::new(0.0, 0.0, 0.0);
+            let overview_distance = 400.0; // Distancia para ver todo el sistema
+            
+            let offset = Vector3::new(0.0, overview_distance * 0.8, overview_distance * 0.6);
+            self.warp_target_pos = system_center + offset;
+            self.target = system_center;
+            self.distance = overview_distance;
             
             self.is_warping = true;
             self.warp_progress = 0.0;
