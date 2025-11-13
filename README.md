@@ -1,175 +1,149 @@
-# Simulador del Sistema Solar
+# Simulador del Sistema Solar 🌌
 
-Un simulador del sistema solar implementado en Rust usando un software renderer personalizado con Raylib.
-
-## 🌟 Características Implementadas
-
-### Características Principales
-- ✅ **Sol y Planetas**: Sistema solar con 1 estrella y 5 planetas únicos
-- ✅ **Plano Eclíptico**: Todos los cuerpos celestes se alinean al plano eclíptico
-- ✅ **Rotación Orbital**: Los planetas orbitan alrededor del sol en órbitas circulares
-- ✅ **Rotación Axial**: Cada cuerpo celeste rota sobre su propio eje
-- ✅ **Cámara 3D**: Sistema de cámara completamente funcional con movimiento en 3 dimensiones
-
-### Características Avanzadas
-- ✅ **Instant Warping**: Teletransporte instantáneo a diferentes planetas (teclas 1-5 con Shift)
-- ✅ **Warping Animado**: Efecto de animación suave durante el teletransporte (teclas 1-5)
-- ✅ **Warp al Sol**: Teletransporte rápido al sol (tecla 0)
-- ✅ **Vista Panorámica**: Warp a vista general del sistema (tecla 9)
-- ✅ **Nave Espacial 3D**: Nave modelada personalizada que sigue a la cámara
-- ✅ **Efectos de Motor**: Resplandor animado en los motores de la nave
-- ✅ **Skybox**: Campo de estrellas en el horizonte
-- ✅ **Detección de Colisiones**: La cámara/nave evita atravesar los cuerpos celestes
-- ✅ **Órbitas Visibles**: Renderizado de las órbitas planetarias (tecla O)
-- ✅ **Lunas**: Algunos planetas tienen lunas que orbitan a su alrededor
-- ✅ **Anillos**: Planetas con sistemas de anillos
+Un simulador del sistema solar implementado en Rust con software renderer personalizado.
 
 ## 🎥 Video Demostración
 
-https://youtu.be/bc6I4BoS3eQ?si=d4wYlcaBzI7dPjMh
+[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/EV222UWm-VM/maxresdefault.jpg)](https://youtu.be/EV222UWm-VM)
+
+*Haz clic en la imagen para ver el video completo - demostración de controles, warping y navegación 3D*
+
+## 🌟 Características Implementadas
+
+### Sistema Solar
+- **1 Estrella**: Sol en el centro con efectos de resplandor
+- **5 Planetas**: Pyrion, Verdania, Gigantus, Glacialis, Plutonix
+- **3 Lunas**: Distribuidas entre los planetas
+- **Anillos**: Sistema de anillos en Gigantus
+- **Posiciones fijas**: Planetas estáticos para navegación consistente
+
+### Funcionalidades Especiales
+- ✅ **Instant Warping**: Teletransporte instantáneo (Shift+1-5)
+- ✅ **Warping Animado**: Transición suave animada (1-5)
+- ✅ **Skybox**: Campo de 1500 estrellas
+- ✅ **Detección de Colisiones**: Previene atravesar planetas
+- ✅ **Cámara 3D**: Movimiento libre en todas las direcciones
+- ✅ **Órbitas Visibles**: Toggle para mostrar/ocultar órbitas
 
 ## 🎮 Controles
 
-### Movimiento de Cámara
-- **Mouse**: Rotar cámara (mantener clic izquierdo)
-- **Rueda del Mouse**: Zoom in/out
-- **WASD**: Movimiento 3D de la cámara
-- **Shift**: Acelerar movimiento
-- **Ctrl**: Ralentizar movimiento
+| Tecla | Función |
+|-------|---------|
+| **Mouse + Clic** | Rotar cámara |
+| **Rueda Mouse** | Zoom in/out |
+| **WASD** | Movimiento 3D |
+| **Q/E** | Subir/bajar |
+| **W** | Toggle modo warp |
+| **1-5** | Warp animado a planetas |
+| **Shift+1-5** | Warp instantáneo |
+| **0** | Warp al Sol |
+| **9** | Vista general del sistema |
+| **O** | Toggle órbitas |
 
-### Funciones Especiales
-- **W**: Alternar modo warp
-- **0**: Teletransporte al Sol
-- **9**: Vista panorámica del sistema
-- **1-5**: Teletransporte animado a planetas específicos
-- **Shift+1-5**: Teletransporte instantáneo (sin animación)
-- **O**: Mostrar/ocultar órbitas planetarias
+## 🛠️ Arquitectura del Proyecto
 
-## 🪐 Cuerpos Celestes
-
-### Sol (Estrella)
-- **Nombre**: Sol
-- **Color**: Amarillo brillante con efecto de resplandor
-- **Características**: Estrella central del sistema
-
-### Planetas
-
-1. **Pyrion** (Planeta Rocoso)
-   - Color: Rojo ardiente
-   - Distancia orbital: 50 unidades
-   - Características: Planeta volcánico cercano al sol
-
-2. **Verdania** (Planeta con Vida)
-   - Color: Verde azulado
-   - Distancia orbital: 80 unidades
-   - Características: Planeta habitable con 1 luna
-
-3. **Gigantus** (Gigante Gaseoso)
-   - Color: Naranja
-   - Distancia orbital: 120 unidades
-   - Características: Planeta gigante con anillos y 2 lunas
-
-4. **Glacialis** (Planeta Helado)
-   - Color: Azul claro
-   - Distancia orbital: 160 unidades
-   - Características: Planeta helado en las regiones exteriores
-
-5. **Plutonix** (Planeta Enano)
-   - Color: Gris
-   - Distancia orbital: 200 unidades
-   - Características: Pequeño planeta en el borde del sistema
-
-## 🛠️ Arquitectura Técnica
+```
+src/
+├── main.rs           # Punto de entrada y bucle principal
+├── camera.rs         # Sistema de cámara y warping
+├── celestial_body.rs # Definición de planetas, lunas y sol
+├── solar_system.rs   # Gestión del sistema completo
+├── renderer.rs       # Software renderer 3D
+└── matrix.rs         # Matemáticas 3D y transformaciones
+```
 
 ### Módulos Principales
 
-- **`main.rs`**: Punto de entrada, bucle principal y manejo de entrada
-- **`matrix.rs`**: Implementación de matrices 4x4 y transformaciones 3D
-- **`camera.rs`**: Sistema de cámara con controles orbitales, movimiento 3D y warping
-- **`celestial_body.rs`**: Definición y comportamiento de cuerpos celestes
-- **`solar_system.rs`**: Gestión del sistema solar completo
-- **`renderer.rs`**: Software renderer personalizado con proyección 3D
+#### **main.rs**
+- Inicialización de Raylib
+- Bucle principal del juego
+- Manejo de entrada de usuario
+- Coordinación entre sistemas
 
-### Software Renderer
+#### **camera.rs**
+- Sistema de cámara orbital
+- Funciones de warp (animado e instantáneo)
+- Detección y prevención de colisiones
+- Controles de movimiento 3D
 
-El renderer implementa:
-- Transformaciones de coordenadas mundo → vista → proyección → pantalla
-- Proyección perspectiva con matriz de proyección personalizada
-- Renderizado de esferas usando círculos con efectos de profundidad
-- Sistema de skybox con estrellas generadas proceduralmente
-- Renderizado de órbitas como líneas conectadas
-- Efectos visuales (resplandor para estrellas, anillos planetarios)
+#### **celestial_body.rs**
+- Estructura de datos para cuerpos celestes
+- Propiedades: posición, radio, color, rotación
+- Generación de geometría esférica
+- Sistema de lunas y anillos
+
+#### **solar_system.rs**
+- Configuración del sistema solar
+- Gestión de todos los cuerpos celestes
+- Actualización y renderizado coordinado
+
+#### **renderer.rs**
+- Software renderer personalizado
+- Pipeline 3D: mundo → vista → proyección → pantalla
+- Renderizado de esferas, órbitas y skybox
+- Efectos visuales y iluminación básica
+
+#### **matrix.rs**
+- Implementación de matrices 4x4
+- Transformaciones 3D (rotación, traslación, escala)
+- Proyección perspectiva
+- Operaciones vectoriales
+
+## 📦 Dependencias
+
+### Raylib (v5.0)
+```toml
+raylib = "5.0"
+```
+**¿Por qué Raylib?**
+- **Simplicidad**: API limpia para ventanas y entrada
+- **Performance**: Renderizado eficiente en GPU
+- **Cross-platform**: Funciona en Windows, macOS, Linux
+- **Rust bindings**: Integración nativa con Rust
+
+### Rand (v0.8)
+```toml
+rand = "0.8"
+```
+**¿Por qué Rand?**
+- **Skybox**: Generación procedural de estrellas
+- **Variabilidad**: Posiciones aleatorias para efectos visuales
+- **Estándar**: Biblioteca estándar para números aleatorios en Rust
 
 ## 🚀 Instalación y Ejecución
 
 ### Prerrequisitos
-- Rust (versión 1.70 o superior)
-- Cargo (incluido con Rust)
+- [Rust](https://rustup.rs/) (versión 1.70+)
+- Git
 
-### Dependencias
-- `raylib = "5.0"`: Para ventana, gráficos y entrada
-- `rand = "0.8"`: Para generación de estrellas aleatorias
-
-### Compilación y Ejecución
-
+### Pasos
 ```bash
 # Clonar el repositorio
 git clone https://github.com/jruiz002/Proyecto_Planetas.git
 cd Proyecto_Planetas
 
-# Compilar el proyecto
-cargo build --release
-
-# Ejecutar el simulador
+# Compilar y ejecutar
 cargo run --release
 ```
 
-## 🎯 Puntuación del Proyecto
+## 🔧 Características Técnicas
 
-### Criterios Cumplidos
+### Software Renderer
+- **Pipeline 3D completo**: Transformaciones mundo-vista-proyección
+- **Proyección perspectiva**: Matrices 4x4 personalizadas
+- **Renderizado por profundidad**: Ordenamiento correcto de objetos
+- **Optimizaciones**: Culling y nivel de detalle dinámico
 
-| Criterio | Puntos | Estado |
-|----------|--------|--------|
-| Estética del sistema completo | 30 | ✅ |
-| Performance de la escena | 20 | ✅ |
-| Planetas/estrellas/lunas (5 cuerpos) | 50 | ✅ |
-| Instant warping | 10 | ✅ |
-| Efecto de warping animado | 10 | ✅ |
-| Skybox con estrellas | 10 | ✅ |
-| Detección de colisiones | 10 | ✅ |
-| Movimiento 3D de cámara | 40 | ✅ |
-| Renderizado de órbitas | 20 | ✅ |
-| **TOTAL** | **200** | ✅ |
+### Sistema de Warping
+- **Interpolación suave**: Función `smooth_step` para animaciones
+- **Múltiples destinos**: Sol, planetas individuales, vista general
+- **Navegación intuitiva**: Warp instantáneo o animado según preferencia
 
+### Detección de Colisiones
+- **Buffer de seguridad**: 1.6x radio de cada cuerpo celeste
+- **Reposicionamiento automático**: Empuje suave fuera de la zona de colisión
+- **Feedback visual**: Indicador en UI cuando está activo
 
-## 🔧 Características Técnicas Destacadas
+---
 
-### Matemáticas 3D
-- Implementación completa de matrices 4x4
-- Transformaciones de rotación, traslación y escala
-- Proyección perspectiva personalizada
-- Sistema de coordenadas vista-modelo-proyección
-
-### Optimizaciones
-- Culling de objetos fuera de pantalla
-- Renderizado por distancia para orden correcto
-- Aproximaciones eficientes para cálculos de distancia
-- Generación procedural de geometría
-
-### Efectos Visuales
-- Gradientes para simular iluminación 3D
-- Efectos de resplandor para estrellas
-- Transparencia para anillos planetarios
-- Etiquetas dinámicas de nombres
-
-## 📝 Notas de Desarrollo
-
-Este proyecto fue desarrollado como parte del curso de Gráficas por Computadora, implementando un software renderer desde cero para demostrar comprensión de:
-
-- Transformaciones 3D y proyección
-- Sistemas de coordenadas
-- Renderizado de primitivas
-- Gestión de cámara y controles
-- Arquitectura de software para gráficos
-
-El código está estructurado de manera modular para facilitar el mantenimiento y la extensión de funcionalidades.
+*Proyecto desarrollado para el curso de Gráficas por Computadora - Universidad del Valle de Guatemala*
