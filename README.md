@@ -4,7 +4,7 @@ Un simulador del sistema solar implementado en Rust con software renderer person
 
 ## 🎥 Video Demostración
 
-[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/EV222UWm-VM/maxresdefault.jpg)](https://youtu.be/EV222UWm-VM)
+[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/iKaNzFiWErI/hqdefault.jpg)](https://youtu.be/iKaNzFiWErI)
 
 *Haz clic en la imagen para ver el video completo - demostración de controles, warping y navegación 3D*
 
