@@ -39,6 +39,7 @@ fn main() {
     let mut show_orbits = true;
     let mut warp_mode = false;
     let mut selected_planet = 0;
+    let mut follow_planet: Option<usize> = None;
 
     while !rl.window_should_close() {
         let dt = rl.get_frame_time();
@@ -46,11 +47,19 @@ fn main() {
 
         // Handle input
         handle_input(&mut rl, &mut camera, &mut show_orbits, 
-                    &mut warp_mode, &mut selected_planet, &solar_system, dt);
+                    &mut warp_mode, &mut selected_planet, &mut follow_planet, &solar_system, dt);
 
         // Update solar system
         solar_system.update(dt);
 
+        if let Some(i) = follow_planet {
+            if solar_system.planets.len() > i {
+                camera.set_target(solar_system.planets[i].position);
+            } else {
+                follow_planet = None;
+            }
+        }
+        
         // Update camera
         camera.update(dt);
 
@@ -82,6 +91,7 @@ fn handle_input(
     show_orbits: &mut bool,
     warp_mode: &mut bool,
     selected_planet: &mut usize,
+    follow_planet: &mut Option<usize>,
     solar_system: &SolarSystem,
     dt: f32,
 ) {
@@ -155,18 +165,23 @@ fn handle_input(
     if rl.is_key_down(KeyboardKey::KEY_LEFT_SHIFT) || rl.is_key_down(KeyboardKey::KEY_RIGHT_SHIFT) {
         if rl.is_key_pressed(KeyboardKey::KEY_ONE) && solar_system.planets.len() > 0 {
             camera.instant_warp_to_planet(&solar_system.planets[0]);
+            *follow_planet = Some(0);
         }
         if rl.is_key_pressed(KeyboardKey::KEY_TWO) && solar_system.planets.len() > 1 {
             camera.instant_warp_to_planet(&solar_system.planets[1]);
+            *follow_planet = Some(1);
         }
         if rl.is_key_pressed(KeyboardKey::KEY_THREE) && solar_system.planets.len() > 2 {
             camera.instant_warp_to_planet(&solar_system.planets[2]);
+            *follow_planet = Some(2);
         }
         if rl.is_key_pressed(KeyboardKey::KEY_FOUR) && solar_system.planets.len() > 3 {
             camera.instant_warp_to_planet(&solar_system.planets[3]);
+            *follow_planet = Some(3);
         }
         if rl.is_key_pressed(KeyboardKey::KEY_FIVE) && solar_system.planets.len() > 4 {
             camera.instant_warp_to_planet(&solar_system.planets[4]);
+            *follow_planet = Some(4);
         }
     }
 
