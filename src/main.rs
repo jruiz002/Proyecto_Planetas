@@ -7,6 +7,7 @@ mod solar_system;
 use raylib::prelude::*;
 
 use crate::camera::Camera;
+use crate::celestial_body::CelestialBody;
 use crate::solar_system::SolarSystem;
 use crate::renderer::Renderer;
 
@@ -53,6 +54,13 @@ fn main() {
         // Update camera
         camera.update(dt);
 
+        // Prevent camera collision with celestial bodies
+        let all_bodies: Vec<CelestialBody> = solar_system.get_all_bodies()
+            .into_iter()
+            .cloned()
+            .collect();
+        camera.avoid_collision(&all_bodies);
+
         // Render
         let mut d = rl.begin_drawing(&thread);
         d.clear_background(Color::BLACK);
@@ -64,7 +72,7 @@ fn main() {
         renderer.render_solar_system(&mut d, &solar_system, &camera, show_orbits);
 
         // Render UI
-        render_ui(&mut d, &camera, show_orbits, warp_mode, selected_planet);
+        render_ui(&mut d, &camera, show_orbits, warp_mode, selected_planet, &all_bodies);
     }
 }
 
@@ -194,6 +202,7 @@ fn render_ui(
     show_orbits: bool,
     warp_mode: bool,
     _selected_planet: usize,
+    all_bodies: &[CelestialBody],
 ) {
     let y_offset = 10;
     let mut current_y = y_offset;
@@ -207,8 +216,14 @@ fn render_ui(
     current_y += 20;
 
     let warp_text = if warp_mode { "ON" } else { "OFF" };
-    //d.draw_text(&format!("Warp Mode: {}", warp_text), 10, current_y, 14, Color::WHITE);
+    
     current_y += 20;
+
+    // Show collision status
+    if let Some(collision_info) = camera.get_collision_status(all_bodies) {
+        d.draw_text(&format!("Collision Protection: {}", collision_info), 10, current_y, 14, Color::ORANGE);
+        current_y += 20;
+    }
 
     if camera.is_warping {
         d.draw_text("WARPING...", 10, current_y, 16, Color::YELLOW);

@@ -284,16 +284,34 @@ impl Camera {
         distance_to_body < body.radius * 1.5 // Add some buffer
     }
 
+    // Check if camera is currently near any celestial body (for UI display)
+    pub fn get_collision_status(&self, bodies: &[CelestialBody]) -> Option<String> {
+        for body in bodies {
+            if self.check_collision(body) {
+                return Some(format!("Near {}", body.name));
+            }
+        }
+        None
+    }
+
     // Prevent camera from going through celestial bodies
     pub fn avoid_collision(&mut self, bodies: &[CelestialBody]) {
         for body in bodies {
             if self.check_collision(body) {
+                // Calculate direction away from the body
                 let direction = normalize_vector(self.eye - body.position);
-                let safe_distance = body.radius * 1.5;
+                let safe_distance = body.radius * 1.6; // Increased buffer
+                
+                // Push camera to safe distance
                 self.eye = body.position + direction * safe_distance;
                 
                 // Update distance to maintain camera behavior
                 self.distance = vector_length(self.eye - self.target);
+                
+                // Optionally update target to maintain camera orientation
+                if vector_length(self.target - body.position) < body.radius * 1.2 {
+                    self.target = body.position + direction * (body.radius * 2.0);
+                }
             }
         }
     }
