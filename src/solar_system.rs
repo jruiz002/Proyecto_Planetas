@@ -36,7 +36,7 @@ impl SolarSystem {
             40.0,   // orbital radius
             2.0,    // orbital speed (not used in static mode)
             3.0,    // radius
-            Color::new(139, 69, 19, 255), // Brown
+            Color::new(210, 105, 30, 255), // Chocolate brown - more vibrant
             3.0,    // rotation speed
             0.1,    // orbital inclination
         );
@@ -63,7 +63,7 @@ impl SolarSystem {
             12.0,   // orbital radius around planet
             8.0,    // orbital speed
             1.5,    // radius
-            Color::LIGHTGRAY,
+            Color::new(192, 192, 192, 255), // Silver
             1.0,    // rotation speed
         );
         planet2.add_moon(moon1);
@@ -75,7 +75,7 @@ impl SolarSystem {
             120.0,  // orbital radius
             1.0,    // orbital speed
             8.0,    // radius
-            Color::new(255, 215, 0, 255), // Gold
+            Color::new(255, 200, 50, 255), // Bright gold
             1.5,    // rotation speed
             0.15,   // orbital inclination
         );
@@ -84,7 +84,7 @@ impl SolarSystem {
         planet3.position = Vector3::new(120.0 * angle3.cos(), 0.0, 120.0 * angle3.sin());
 
         // Add rings to planet3
-        planet3.add_rings(10.0, 15.0, Color::new(200, 200, 200, 100));
+        planet3.add_rings(10.0, 15.0, Color::new(220, 220, 180, 120));
 
         // Add multiple moons to planet3
         let moon2 = CelestialBody::new_moon(
@@ -93,7 +93,7 @@ impl SolarSystem {
             20.0,   // orbital radius
             4.0,    // orbital speed
             2.0,    // radius
-            Color::ORANGE,
+            Color::new(255, 140, 0, 255), // Dark orange
             2.0,    // rotation speed
         );
         planet3.add_moon(moon2);
@@ -104,7 +104,7 @@ impl SolarSystem {
             25.0,   // orbital radius
             3.0,    // orbital speed
             1.0,    // radius
-            Color::RED,
+            Color::new(220, 20, 60, 255), // Crimson
             3.0,    // rotation speed
         );
         planet3.add_moon(moon3);
@@ -116,7 +116,7 @@ impl SolarSystem {
             180.0,  // orbital radius
             0.7,    // orbital speed
             6.0,    // radius
-            Color::new(70, 130, 180, 255), // Steel blue
+            Color::new(135, 206, 250, 255), // Light sky blue - icy look
             1.0,    // rotation speed
             0.2,    // orbital inclination
         );
@@ -131,7 +131,7 @@ impl SolarSystem {
             250.0,  // orbital radius
             0.4,    // orbital speed
             2.5,    // radius
-            Color::new(128, 0, 128, 255), // Purple
+            Color::new(186, 85, 211, 255), // Medium orchid purple
             0.8,    // rotation speed
             0.3,    // orbital inclination
         );
