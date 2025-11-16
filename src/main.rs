@@ -5,6 +5,10 @@ mod renderer;
 mod solar_system;
 mod framebuffer;
 mod obj_loader;
+mod vertex_shader;
+mod primitive_assembly;
+mod rasterizer;
+mod fragment_shader;
 
 use raylib::prelude::*;
 
