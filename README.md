@@ -1,148 +1,161 @@
 # Simulador del Sistema Solar 🌌
 
-Un simulador del sistema solar implementado en Rust con software renderer personalizado.
+Proyecto de renderizado 3D en tiempo real utilizando un **Software Rasterizer** completamente personalizado en Rust. El sistema implementa un pipeline gráfico modular desde cero, sin uso de GPU, renderizando un sistema solar interactivo con planetas, lunas, anillos y efectos visuales.
 
-## 🎥 Video Demostración
 
-[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/iKaNzFiWErI/hqdefault.jpg)](https://youtu.be/iKaNzFiWErI)
+- ✅ **Framebuffer personalizado**: Sistema de buffer de píxeles propio (960,000 píxeles)
+- ✅ **Pipeline en etapas separadas**: 4 módulos independientes (vertex → assembly → rasterizer → fragment)
+- ✅ **Modelo sphere.obj**: 482 vértices importados desde archivo Wavefront OBJ
+- ✅ **Transformaciones con matrices 4x4**: Model → View → Projection → Viewport
 
-*Haz clic en la imagen para ver el video completo - demostración de controles, warping y navegación 3D*
+---
 
-## 🌟 Características Implementadas
+## 🌟 Características del Sistema
 
 ### Sistema Solar
-- **1 Estrella**: Sol en el centro con efectos de resplandor
+- **1 Estrella**: Sol central con emisión de luz
 - **5 Planetas**: Pyrion, Verdania, Gigantus, Glacialis, Plutonix
-- **3 Lunas**: Distribuidas entre los planetas
-- **Anillos**: Sistema de anillos en Gigantus
-- **Posiciones fijas**: Planetas estáticos para navegación consistente
+- **3 Lunas**: Distribuidas entre planetas
+- **Sistema de anillos**: Gigantus con anillos procedurales
+- **Órbitas visuales**: Trazado de caminos orbitales
 
-### Funcionalidades Especiales
-- ✅ **Instant Warping**: Teletransporte instantáneo (Shift+1-5)
-- ✅ **Warping Animado**: Transición suave animada (1-5)
-- ✅ **Skybox**: Campo de 1500 estrellas
-- ✅ **Detección de Colisiones**: Previene atravesar planetas
-- ✅ **Cámara 3D**: Movimiento libre en todas las direcciones
-- ✅ **Órbitas Visibles**: Toggle para mostrar/ocultar órbitas
+### Efectos Visuales
+- **Phong Shading**: Iluminación difusa y ambiente
+- **Sistema de LOD**: 4 niveles de detalle dinámicos (1x, 2x, 4x, 8x skip)
+- **Skybox procedural**: 1500 estrellas generadas aleatoriamente
+- **Backface Culling**: Optimización de triángulos no visibles
+- **Interpolación baricéntrica**: Colores y normales suaves
+
+### Optimizaciones de Performance
+- Compilación en modo `--release`
+- Level of Detail (LOD) basado en distancia
+- Culling de triángulos traseros
+- Salto de píxeles en renderizado lejano
+- Renderizado incremental de estrellas
+
+---
 
 ## 🎮 Controles
 
 | Tecla | Función |
 |-------|---------|
-| **Mouse + Clic** | Rotar cámara |
+| **Mouse** | Rotar cámara orbital |
 | **Rueda Mouse** | Zoom in/out |
-| **WASD** | Movimiento 3D |
+| **W/A/S/D** | Movimiento horizontal |
 | **Q/E** | Subir/bajar |
-| **W** | Toggle modo warp |
 | **1-5** | Warp animado a planetas |
 | **Shift+1-5** | Warp instantáneo |
-| **0** | Warp al Sol |
-| **9** | Vista general del sistema |
 | **O** | Toggle órbitas |
 
-## 🛠️ Arquitectura del Proyecto
+---
 
+## 🏗️ Arquitectura del Proyecto
+
+### Estructura de Módulos
 ```
 src/
-├── main.rs           # Punto de entrada y bucle principal
-├── camera.rs         # Sistema de cámara y warping
-├── celestial_body.rs # Definición de planetas, lunas y sol
-├── solar_system.rs   # Gestión del sistema completo
-├── renderer.rs       # Software renderer 3D
-└── matrix.rs         # Matemáticas 3D y transformaciones
+├── main.rs                   # Game loop y UI
+├── renderer.rs               # Orquestador del pipeline
+├── framebuffer.rs            # Buffer de píxeles personalizado
+├── vertex_shader.rs          # Etapa 1: Transformaciones de vértices
+├── primitive_assembly.rs     # Etapa 2: Ensamblado de triángulos
+├── rasterizer.rs             # Etapa 3: Conversión a fragmentos
+├── fragment_shader.rs        # Etapa 4: Cálculo de colores finales
+├── camera.rs                 # Sistema de cámara 3D
+├── matrix.rs                 # Operaciones con matrices 4x4
+├── obj_loader.rs             # Importador de archivos Wavefront OBJ
+├── celestial_body.rs         # Estructuras de planetas/lunas
+└── solar_system.rs           # Configuración del sistema solar
 ```
 
-### Módulos Principales
+### Descripción de Módulos
 
-#### **main.rs**
-- Inicialización de Raylib
-- Bucle principal del juego
-- Manejo de entrada de usuario
-- Coordinación entre sistemas
+**Pipeline Gráfico (4 Etapas):**
 
-#### **camera.rs**
-- Sistema de cámara orbital
-- Funciones de warp (animado e instantáneo)
-- Detección y prevención de colisiones
-- Controles de movimiento 3D
+1. **vertex_shader.rs**: Transforma vértices del modelo local a coordenadas de pantalla
+   - Aplica matrices: Model → View → Projection → Viewport
+   - Calcula posición final y normales transformadas
 
-#### **celestial_body.rs**
-- Estructura de datos para cuerpos celestes
-- Propiedades: posición, radio, color, rotación
-- Generación de geometría esférica
-- Sistema de lunas y anillos
+2. **primitive_assembly.rs**: Ensambla triángulos a partir de vértices
+   - Lee índices de caras del modelo OBJ
+   - Implementa backface culling (descarta triángulos traseros)
+   - Realiza frustum culling
 
-#### **solar_system.rs**
-- Configuración del sistema solar
-- Gestión de todos los cuerpos celestes
-- Actualización y renderizado coordinado
+3. **rasterizer.rs**: Convierte triángulos en fragmentos (píxeles)
+   - Calcula coordenadas baricéntricas para interpolación
+   - Sistema LOD con 4 niveles de detalle
+   - Genera fragmentos con atributos interpolados (color, normal, profundidad)
 
-#### **renderer.rs**
-- Software renderer personalizado
-- Pipeline 3D: mundo → vista → proyección → pantalla
-- Renderizado de esferas, órbitas y skybox
-- Efectos visuales y iluminación básica
+4. **fragment_shader.rs**: Calcula color final de cada píxel
+   - Iluminación Phong (ambiente + difusa)
+   - Modo emisivo para objetos brillantes (Sol)
+   - Aplicación de colores base
 
-#### **matrix.rs**
-- Implementación de matrices 4x4
-- Transformaciones 3D (rotación, traslación, escala)
-- Proyección perspectiva
-- Operaciones vectoriales
+**Sistema de Renderizado:**
 
-## 📦 Dependencias
+- **renderer.rs**: Orquestador que conecta las 4 etapas del pipeline
+- **framebuffer.rs**: Buffer personalizado de 960,000 píxeles (1200x800)
+- **obj_loader.rs**: Carga sphere.obj (482 vértices, 960 caras)
 
-### Raylib (v5.0)
-```toml
-raylib = "5.0"
+**Sistemas de Soporte:**
+
+- **camera.rs**: Cámara 3D con detección de colisiones
+- **matrix.rs**: Operaciones con matrices 4x4 (multiplicación, inversión, transformaciones)
+- **celestial_body.rs**: Propiedades de planetas (posición, radio, color, órbita)
+- **solar_system.rs**: Configuración de todos los cuerpos celestes
+
+---
+
+## 🔄 Flujo del Pipeline Gráfico
+
 ```
-**¿Por qué Raylib?**
-- **Simplicidad**: API limpia para ventanas y entrada
-- **Performance**: Renderizado eficiente en GPU
-- **Cross-platform**: Funciona en Windows, macOS, Linux
-- **Rust bindings**: Integración nativa con Rust
-
-### Rand (v0.8)
-```toml
-rand = "0.8"
+Modelo OBJ (sphere.obj)
+        ↓
+┌───────────────────────┐
+│  1. VERTEX SHADER     │
+│  - Model Matrix       │
+│  - View Matrix        │
+│  - Projection Matrix  │
+│  - Viewport Matrix    │
+└───────────────────────┘
+        ↓
+┌───────────────────────┐
+│  2. PRIMITIVE         │
+│     ASSEMBLY          │
+│  - Ensamblar triángulos│
+│  - Backface culling   │
+│  - Frustum culling    │
+└───────────────────────┘
+        ↓
+┌───────────────────────┐
+│  3. RASTERIZER        │
+│  - Coordenadas        │
+│    baricéntricas      │
+│  - Sistema LOD        │
+│  - Generar fragmentos │
+└───────────────────────┘
+        ↓
+┌───────────────────────┐
+│  4. FRAGMENT SHADER   │
+│  - Phong lighting     │
+│  - Color final        │
+│  - Emisión (Sol)      │
+└───────────────────────┘
+        ↓
+   Framebuffer (960,000 píxeles)
+        ↓
+   Pantalla (Raylib Texture)
 ```
-**¿Por qué Rand?**
-- **Skybox**: Generación procedural de estrellas
-- **Variabilidad**: Posiciones aleatorias para efectos visuales
-- **Estándar**: Biblioteca estándar para números aleatorios en Rust
 
-## 🚀 Instalación y Ejecución
+---
 
-### Prerrequisitos
-- [Rust](https://rustup.rs/) (versión 1.70+)
-- Git
+## 🚀 Ejecución
 
-### Pasos
+Para levantar el proyecto:
+
 ```bash
-# Clonar el repositorio
-git clone https://github.com/jruiz002/Proyecto_Planetas.git
-cd Proyecto_Planetas
-
-# Compilar y ejecutar
 cargo run --release
 ```
-
-## 🔧 Características Técnicas
-
-### Software Renderer
-- **Pipeline 3D completo**: Transformaciones mundo-vista-proyección
-- **Proyección perspectiva**: Matrices 4x4 personalizadas
-- **Renderizado por profundidad**: Ordenamiento correcto de objetos
-- **Optimizaciones**: Culling y nivel de detalle dinámico
-
-### Sistema de Warping
-- **Interpolación suave**: Función `smooth_step` para animaciones
-- **Múltiples destinos**: Sol, planetas individuales, vista general
-- **Navegación intuitiva**: Warp instantáneo o animado según preferencia
-
-### Detección de Colisiones
-- **Buffer de seguridad**: 1.6x radio de cada cuerpo celeste
-- **Reposicionamiento automático**: Empuje suave fuera de la zona de colisión
-- **Feedback visual**: Indicador en UI cuando está activo
 
 ---
 
