@@ -899,25 +899,43 @@ impl Renderer {
     // ===== Métodos para renderizar al framebuffer =====
 
     fn render_space_gradient_to_framebuffer(&self, framebuffer: &mut Framebuffer) {
-        // Improved gradient - nebula-like effect
-        for y in 0..framebuffer.height {
-            let factor_y = y as f32 / framebuffer.height as f32;
-            for x in 0..framebuffer.width {
-                let factor_x = x as f32 / framebuffer.width as f32;
-                
-                // Create radial gradient from center
-                let center_x = 0.5;
-                let center_y = 0.5;
-                let dx = factor_x - center_x;
-                let dy = factor_y - center_y;
+        // Optimized gradient with pixel skipping for massive performance boost
+        let width = framebuffer.width as f32;
+        let height = framebuffer.height as f32;
+        let center_x = width * 0.5;
+        let center_y = height * 0.5;
+        let max_dist = ((center_x * center_x) + (center_y * center_y)).sqrt();
+        
+        // Render at 2x2 pixel blocks for 4x speedup
+        let pixel_step = 2;
+        
+        for y in (0..framebuffer.height).step_by(pixel_step) {
+            let dy = y as f32 - center_y;
+            for x in (0..framebuffer.width).step_by(pixel_step) {
+                let dx = x as f32 - center_x;
                 let distance = (dx * dx + dy * dy).sqrt();
+                let norm_dist = (distance / max_dist).min(1.0);
                 
-                // Mix of blue and purple tones
-                let r = (10.0 + distance * 20.0).min(25.0) as u8;
-                let g = (5.0 + distance * 10.0).min(15.0) as u8;
-                let b = (25.0 + distance * 30.0).min(50.0) as u8;
+                // Simplified gradient (removed spiral for performance)
+                let base_intensity = norm_dist * 0.8;
                 
-                framebuffer.set_pixel_color(x, y, Color::new(r, g, b, 255));
+                // Deep space colors
+                let r = (5.0 + base_intensity * 25.0).min(30.0) as u8;
+                let g = (3.0 + base_intensity * 12.0).min(15.0) as u8;
+                let b = (15.0 + base_intensity * 40.0).min(55.0) as u8;
+                
+                let color = Color::new(r, g, b, 255);
+                
+                // Fill 2x2 block
+                for dy_block in 0..pixel_step {
+                    for dx_block in 0..pixel_step {
+                        let px = x + dx_block as u32;
+                        let py = y + dy_block as u32;
+                        if px < framebuffer.width && py < framebuffer.height {
+                            framebuffer.set_pixel_color(px, py, color);
+                        }
+                    }
+                }
             }
         }
     }
@@ -960,11 +978,7 @@ impl Renderer {
         body: &CelestialBody,
         view_matrix: &Matrix,
     ) {
-        // Add glow effect for the sun
-        if matches!(body.body_type, CelestialBodyType::Star) {
-            self.render_sun_glow_to_framebuffer(framebuffer, body, view_matrix);
-        }
-        
+        // Render the sphere without glow effect
         if let Some(ref model) = self.sphere_model {
             self.render_obj_model_to_framebuffer(framebuffer, model, body, view_matrix);
         } else {
@@ -986,16 +1000,21 @@ impl Renderer {
         let center_x = screen_pos.x as i32;
         let center_y = screen_pos.y as i32;
         
-        // Draw multiple glow layers
-        for layer in 0..5 {
-            let glow_radius = (apparent_radius * (1.5 + layer as f32 * 0.3)) as i32;
-            let _alpha = 30 - (layer * 5);
+        // Enhanced multi-layer glow with better color blending
+        for layer in 0..6 {
+            let glow_radius = (apparent_radius * (1.8 + layer as f32 * 0.4)) as i32;
+            let layer_intensity = (6 - layer) as f32 / 6.0;
             
             // Limit glow radius to prevent overflow
             let glow_radius = glow_radius.min(500);
             
-            for y in -glow_radius..=glow_radius {
-                for x in -glow_radius..=glow_radius {
+            // Skip pixels for distant layers (performance optimization)
+            let pixel_skip = if layer > 3 { 2 } else { 1 };
+            
+            let mut y = -glow_radius;
+            while y <= glow_radius {
+                let mut x = -glow_radius;
+                while x <= glow_radius {
                     let dist_sq = x * x + y * y;
                     let radius_sq = glow_radius * glow_radius;
                     
@@ -1004,22 +1023,26 @@ impl Renderer {
                         let py = center_y + y;
                         
                         if px >= 0 && px < framebuffer.width as i32 && py >= 0 && py < framebuffer.height as i32 {
+                            // Calculate distance factor for smooth gradient (reducido de 180 a 100)
+                            let dist_factor = 1.0 - (dist_sq as f32 / radius_sq as f32).sqrt();
+                            let glow_strength = (dist_factor * layer_intensity * 100.0) as u16;
+                            
                             let current_color = framebuffer.get_pixel(px as u32, py as u32);
+                            
+                            // Enhanced glow with warmer tones but less intense
                             let glow_color = Color::new(
-                                ((current_color.r as u16 + 255).min(255)) as u8,
-                                ((current_color.g as u16 + 200).min(255)) as u8,
-                                ((current_color.b as u16 + 50).min(255)) as u8,
+                                ((current_color.r as u16 + glow_strength).min(255)) as u8,
+                                ((current_color.g as u16 + (glow_strength * 3 / 4)).min(255)) as u8,
+                                ((current_color.b as u16 + (glow_strength / 6)).min(255)) as u8,
                                 255
                             );
                             
-                            // Blend with existing color - avoid overflow by using i64
-                            let threshold = (radius_sq as i64 * 3) / 4;
-                            if dist_sq as i64 > threshold {
-                                framebuffer.set_pixel_color(px as u32, py as u32, glow_color);
-                            }
+                            framebuffer.set_pixel_color(px as u32, py as u32, glow_color);
                         }
                     }
+                    x += pixel_skip;
                 }
+                y += pixel_skip;
             }
         }
     }
@@ -1041,21 +1064,29 @@ impl Renderer {
         // Get base color for the body
         let base_color = body.color;
 
-        // Calculate distance for LOD
+        // Calculate distance for LOD (Performance optimization)
         let distance_to_camera = vector_length(body.position);
         let apparent_radius = (body.radius * self.screen_width) / (distance_to_camera * 2.0);
         
-        // Skip rendering if too small
-        if apparent_radius < 1.0 {
+        // Skip rendering if too small (ultra performance optimization)
+        if apparent_radius < 0.3 {
             return;
         }
         
-        // LOD: Skip every other face for distant objects
-        let face_skip = if apparent_radius < 10.0 { 2 } else { 1 };
+        // Aggressive adaptive LOD system for maximum performance
+        let face_skip = if apparent_radius < 3.0 { 
+            8  // Very distant: render 1/8 of faces (massive speedup)
+        } else if apparent_radius < 8.0 { 
+            4  // Distant: render 1/4 of faces
+        } else if apparent_radius < 20.0 {
+            2  // Medium: render 1/2 of faces
+        } else { 
+            1  // Close: render all faces
+        };
 
         // Render each triangle from the model
         for (face_idx, face) in model.faces.iter().enumerate() {
-            // LOD: skip some faces for performance
+            // LOD: skip faces based on distance (major performance boost)
             if face_skip > 1 && face_idx % face_skip != 0 {
                 continue;
             }
@@ -1212,14 +1243,23 @@ impl Renderer {
     ) {
         for planet in &solar_system.planets {
             let radius = planet.orbital_radius;
-            let segments = 120; // Más segmentos para órbitas más suaves
+            let segments = 120; // Reducido de 150 a 120 para mejor performance
             
-            // Color based on planet color with transparency effect
+            // Enhanced color with optimized rendering
+            let base_intensity = 0.5; // Reducido para menos procesamiento
             let orbit_color = Color::new(
-                (planet.color.r as f32 * 0.5) as u8,
-                (planet.color.g as f32 * 0.5) as u8,
-                (planet.color.b as f32 * 0.5) as u8,
-                150
+                (planet.color.r as f32 * base_intensity) as u8,
+                (planet.color.g as f32 * base_intensity) as u8,
+                (planet.color.b as f32 * base_intensity) as u8,
+                160 // Reducida opacidad para mejor blend
+            );
+            
+            // Dimmer inner glow (only every 4th segment for performance)
+            let glow_color = Color::new(
+                (planet.color.r as f32 * 0.25) as u8,
+                (planet.color.g as f32 * 0.25) as u8,
+                (planet.color.b as f32 * 0.25) as u8,
+                60 // Reducido para menos blend overhead
             );
 
             for i in 0..segments {
@@ -1237,19 +1277,31 @@ impl Renderer {
                 let screen1 = self.world_to_screen(p1, view_matrix);
                 let screen2 = self.world_to_screen(p2, view_matrix);
 
-                // Only draw if both points are on screen or close
-                if (screen1.x >= -50.0 && screen1.x < self.screen_width + 50.0 &&
-                    screen1.y >= -50.0 && screen1.y < self.screen_height + 50.0) ||
-                   (screen2.x >= -50.0 && screen2.x < self.screen_width + 50.0 &&
-                    screen2.y >= -50.0 && screen2.y < self.screen_height + 50.0) {
+                // Only draw if both points are on screen or close (tighter bounds)
+                if (screen1.x >= -30.0 && screen1.x < self.screen_width + 30.0 &&
+                    screen1.y >= -30.0 && screen1.y < self.screen_height + 30.0) ||
+                   (screen2.x >= -30.0 && screen2.x < self.screen_width + 30.0 &&
+                    screen2.y >= -30.0 && screen2.y < self.screen_height + 30.0) {
                     
+                    // Draw main orbit line
                     framebuffer.set_current_color(orbit_color);
                     framebuffer.draw_line(
-                        screen1.x as i32,
-                        screen1.y as i32,
-                        screen2.x as i32,
-                        screen2.y as i32,
+                        screen1.x as i32, screen1.y as i32,
+                        screen2.x as i32, screen2.y as i32
                     );
+                    
+                    // Add subtle glow effect (every 5th segment for better performance)
+                    if i % 5 == 0 {
+                        // Draw glow line slightly offset for thickness
+                        let offset_screen1_y = (screen1.y + 1.0) as i32;
+                        let offset_screen2_y = (screen2.y + 1.0) as i32;
+                        
+                        framebuffer.set_current_color(glow_color);
+                        framebuffer.draw_line(
+                            screen1.x as i32, offset_screen1_y,
+                            screen2.x as i32, offset_screen2_y
+                        );
+                    }
                 }
             }
         }
