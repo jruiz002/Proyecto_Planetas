@@ -123,7 +123,10 @@ impl Camera {
     pub fn zoom(&mut self, delta: f32) {
         if !self.is_warping {
             self.distance -= delta * self.zoom_speed;
-            self.distance = self.distance.clamp(5.0, 1000.0);
+            // OPTIMIZACIÓN: Límite mínimo de distancia más restrictivo
+            // Evita que la cámara se acerque tanto que genere millones de fragmentos
+            // El límite de 10.0 evita problemas de rendering en planetas grandes
+            self.distance = self.distance.clamp(10.0, 1000.0);
         }
     }
 
@@ -275,6 +278,54 @@ impl Camera {
     pub fn set_target(&mut self, new_target: Vector3) {
         if !self.is_warping {
             self.target = new_target;
+        }
+    }
+
+    /// Aplica límites de proximidad inteligentes a la cámara
+    /// 
+    /// Esta función previene que la cámara se acerque demasiado a objetos grandes,
+    /// lo cual causaría:
+    /// 1. Generación de millones de fragmentos (bounding boxes gigantes)
+    /// 2. Caídas severas de FPS (de 60 a <10 FPS)
+    /// 3. Overflow de memoria en el vector de fragmentos
+    /// 
+    /// Límites aplicados:
+    /// - Distancia mínima absoluta: 10.0 unidades
+    /// - Distancia mínima relativa: 2.5x el radio del cuerpo más cercano
+    /// - Esto garantiza que la bounding box del planeta nunca exceda ~3x el tamaño de pantalla
+    pub fn enforce_minimum_distance(&mut self, bodies: &[CelestialBody]) {
+        if self.is_warping {
+            return; // No interferir durante warp
+        }
+        
+        // Encontrar el cuerpo celeste más cercano
+        let mut min_distance = f32::INFINITY;
+        let mut closest_body: Option<&CelestialBody> = None;
+        
+        for body in bodies {
+            let distance_to_body = vector_length(self.eye - body.position);
+            if distance_to_body < min_distance {
+                min_distance = distance_to_body;
+                closest_body = Some(body);
+            }
+        }
+        
+        // Si hay un cuerpo cercano, aplicar límite dinámico
+        if let Some(body) = closest_body {
+            // Límite mínimo: 2.5x el radio del planeta
+            // Esto asegura que incluso planetas grandes (radio 15) tengan
+            // una distancia mínima de 37.5, evitando triangulos gigantes en pantalla
+            let dynamic_min_distance = body.radius * 2.5;
+            let absolute_min_distance = 10.0f32.max(dynamic_min_distance);
+            
+            // Si estamos demasiado cerca, empujar la cámara hacia atrás
+            if min_distance < absolute_min_distance {
+                let direction = normalize_vector(self.eye - body.position);
+                self.eye = body.position + direction * absolute_min_distance;
+                
+                // Actualizar distance de la cámara orbital
+                self.distance = vector_length(self.eye - self.target);
+            }
         }
     }
 

@@ -7,6 +7,8 @@ use crate::framebuffer::Framebuffer;
 use crate::obj_loader::ObjModel;
 use crate::vertex_shader::{vertex_shader, VertexShaderOutput};
 use crate::fragment_shader::{fragment_shader, LightingConfig};
+use crate::primitive_assembly::Triangle;
+use crate::rasterizer::rasterize_triangle;
 use rand::Rng;
 use raylib::prelude::*;
 use std::f32::consts::PI;
@@ -267,7 +269,8 @@ impl Renderer {
                     continue; // Back-facing
                 }
 
-                // Rasterize triangle
+                // Rasterize triangle usando el módulo rasterizer optimizado
+                // Este módulo ahora incluye frustum culling de fragmentos
                 self.rasterize_triangle_to_framebuffer(
                     framebuffer,
                     v0_out,
@@ -278,6 +281,12 @@ impl Renderer {
         }
     }
 
+    /// Rasteriza un triángulo al framebuffer
+    /// 
+    /// Esta función usa el módulo rasterizer optimizado que incluye:
+    /// - Frustum culling de fragmentos (no genera fragmentos fuera de pantalla)
+    /// - Interpolación baricéntrica de atributos
+    /// - Fragment shader para calcular colores finales
     fn rasterize_triangle_to_framebuffer(
         &self,
         framebuffer: &mut Framebuffer,
@@ -285,32 +294,34 @@ impl Renderer {
         v1: VertexShaderOutput,
         v2: VertexShaderOutput,
     ) {
-        // Bounding box
-        let min_x = v0.screen_position.x.min(v1.screen_position.x).min(v2.screen_position.x).max(0.0) as i32;
-        let max_x = v0.screen_position.x.max(v1.screen_position.x).max(v2.screen_position.x).min(framebuffer.width as f32 - 1.0) as i32;
-        let min_y = v0.screen_position.y.min(v1.screen_position.y).min(v2.screen_position.y).max(0.0) as i32;
-        let max_y = v0.screen_position.y.max(v1.screen_position.y).max(v2.screen_position.y).min(framebuffer.height as f32 - 1.0) as i32;
-
-        // Rasterize using barycentric coordinates
-        for y in min_y..=max_y {
-            for x in min_x..=max_x {
-                let p = Vector3::new(x as f32 + 0.5, y as f32 + 0.5, 0.0);
-                
-                if self.is_inside_triangle(p, v0.screen_position, v1.screen_position, v2.screen_position) {
-                    // Fragment shader: calculate final color
-                    let final_color = fragment_shader(v0.color, v0.world_normal, &self.lighting_config);
-                    framebuffer.set_pixel_color(x as u32, y as u32, final_color);
-                }
-            }
+        // Crear el triángulo desde los vértices transformados
+        let triangle = Triangle::new(v0, v1, v2);
+        
+        // Rasterizar usando el módulo optimizado con frustum culling
+        // Ahora pasamos screen_width y screen_height para que el rasterizer
+        // pueda clipear fragmentos fuera de pantalla ANTES de generarlos
+        let fragments = rasterize_triangle(
+            &triangle, 
+            self.screen_width, 
+            self.screen_height
+        );
+        
+        // Procesar cada fragmento generado (todos están garantizados dentro de pantalla)
+        for fragment in fragments {
+            // Fragment shader: calcular color final con iluminación
+            let final_color = fragment_shader(
+                fragment.color, 
+                fragment.normal, 
+                &self.lighting_config
+            );
+            
+            // Escribir al framebuffer (sin necesidad de verificar límites)
+            framebuffer.set_pixel_color(
+                fragment.screen_x as u32, 
+                fragment.screen_y as u32, 
+                final_color
+            );
         }
-    }
-
-    fn is_inside_triangle(&self, p: Vector3, v0: Vector3, v1: Vector3, v2: Vector3) -> bool {
-        let edge0 = (v1.x - v0.x) * (p.y - v0.y) - (v1.y - v0.y) * (p.x - v0.x);
-        let edge1 = (v2.x - v1.x) * (p.y - v1.y) - (v2.y - v1.y) * (p.x - v1.x);
-        let edge2 = (v0.x - v2.x) * (p.y - v2.y) - (v0.y - v2.y) * (p.x - v2.x);
-
-        (edge0 >= 0.0 && edge1 >= 0.0 && edge2 >= 0.0) || (edge0 <= 0.0 && edge1 <= 0.0 && edge2 <= 0.0)
     }
 
     // ===== ORBITS =====

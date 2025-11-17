@@ -25,7 +25,8 @@ pub struct Fragment {
 /// 
 /// # Algoritmo:
 /// 1. Calcula la bounding box del triángulo
-/// 2. Para cada píxel en la bounding box:
+/// 2. Aplica clipping a los límites de pantalla (frustum culling)
+/// 3. Para cada píxel en la bounding box clipeada:
 ///    - Calcula coordenadas baricéntricas (u, v, w)
 ///    - Si está dentro del triángulo (u,v,w ≥ 0 y u+v+w=1):
 ///      - Interpola atributos (profundidad, normal, color)
@@ -33,10 +34,12 @@ pub struct Fragment {
 /// 
 /// # Argumentos
 /// * `triangle` - Triángulo a rasterizar
+/// * `screen_width` - Ancho de la pantalla (para clipping)
+/// * `screen_height` - Alto de la pantalla (para clipping)
 /// 
 /// # Returns
-/// Vector de fragmentos que cubren el triángulo
-pub fn rasterize_triangle(triangle: &Triangle) -> Vec<Fragment> {
+/// Vector de fragmentos que cubren el triángulo (solo dentro de pantalla)
+pub fn rasterize_triangle(triangle: &Triangle, screen_width: f32, screen_height: f32) -> Vec<Fragment> {
     let mut fragments = Vec::new();
     
     let v0 = &triangle.vertices[0];
@@ -48,6 +51,26 @@ pub fn rasterize_triangle(triangle: &Triangle) -> Vec<Fragment> {
     let max_x = v0.screen_position.x.max(v1.screen_position.x).max(v2.screen_position.x).ceil() as i32;
     let min_y = v0.screen_position.y.min(v1.screen_position.y).min(v2.screen_position.y).floor() as i32;
     let max_y = v0.screen_position.y.max(v1.screen_position.y).max(v2.screen_position.y).ceil() as i32;
+    
+    // ===== OPTIMIZACIÓN: Frustum Culling de Fragmentos =====
+    // Clipear la bounding box a los límites de pantalla
+    // Esto evita procesar millones de fragmentos fuera de pantalla cuando
+    // un planeta está muy cerca de la cámara
+    let screen_min_x = 0;
+    let screen_max_x = screen_width as i32 - 1;
+    let screen_min_y = 0;
+    let screen_max_y = screen_height as i32 - 1;
+    
+    // Aplicar clipping: solo rasterizar dentro de [0, screen_width) x [0, screen_height)
+    let clipped_min_x = min_x.max(screen_min_x);
+    let clipped_max_x = max_x.min(screen_max_x);
+    let clipped_min_y = min_y.max(screen_min_y);
+    let clipped_max_y = max_y.min(screen_max_y);
+    
+    // Si la bounding box clipeada está completamente fuera de pantalla, retornar vacío
+    if clipped_min_x > clipped_max_x || clipped_min_y > clipped_max_y {
+        return fragments;
+    }
     
     // Pre-calcular área total del triángulo (para coordenadas baricéntricas)
     let total_area = edge_function(
@@ -63,9 +86,11 @@ pub fn rasterize_triangle(triangle: &Triangle) -> Vec<Fragment> {
     
     let inv_total_area = 1.0 / total_area;
     
-    // Iterar sobre cada píxel en la bounding box
-    for y in min_y..=max_y {
-        for x in min_x..=max_x {
+    // Iterar sobre cada píxel en la bounding box CLIPEADA (optimización de frustum culling)
+    // Antes iterábamos sobre toda la bounding box del triángulo, incluso fuera de pantalla
+    // Ahora solo procesamos píxeles dentro de [0, screen_width) x [0, screen_height)
+    for y in clipped_min_y..=clipped_max_y {
+        for x in clipped_min_x..=clipped_max_x {
             let px = x as f32 + 0.5; // Centro del píxel
             let py = y as f32 + 0.5;
             
@@ -125,12 +150,19 @@ pub fn rasterize_triangle(triangle: &Triangle) -> Vec<Fragment> {
 /// # Argumentos
 /// * `triangle` - Triángulo a rasterizar
 /// * `skip_factor` - Cuántos píxeles omitir (1=todos, 2=la mitad, 4=un cuarto, etc.)
+/// * `screen_width` - Ancho de la pantalla (para clipping)
+/// * `screen_height` - Alto de la pantalla (para clipping)
 /// 
 /// # Returns
 /// Vector de fragmentos (con menor resolución si skip_factor > 1)
-pub fn rasterize_triangle_lod(triangle: &Triangle, skip_factor: i32) -> Vec<Fragment> {
+pub fn rasterize_triangle_lod(
+    triangle: &Triangle, 
+    skip_factor: i32, 
+    screen_width: f32, 
+    screen_height: f32
+) -> Vec<Fragment> {
     if skip_factor <= 1 {
-        return rasterize_triangle(triangle);
+        return rasterize_triangle(triangle, screen_width, screen_height);
     }
     
     let mut fragments = Vec::new();
@@ -144,6 +176,21 @@ pub fn rasterize_triangle_lod(triangle: &Triangle, skip_factor: i32) -> Vec<Frag
     let min_y = v0.screen_position.y.min(v1.screen_position.y).min(v2.screen_position.y).floor() as i32;
     let max_y = v0.screen_position.y.max(v1.screen_position.y).max(v2.screen_position.y).ceil() as i32;
     
+    // ===== OPTIMIZACIÓN: Frustum Culling de Fragmentos (versión LOD) =====
+    let screen_min_x = 0;
+    let screen_max_x = screen_width as i32 - 1;
+    let screen_min_y = 0;
+    let screen_max_y = screen_height as i32 - 1;
+    
+    let clipped_min_x = min_x.max(screen_min_x);
+    let clipped_max_x = max_x.min(screen_max_x);
+    let clipped_min_y = min_y.max(screen_min_y);
+    let clipped_max_y = max_y.min(screen_max_y);
+    
+    if clipped_min_x > clipped_max_x || clipped_min_y > clipped_max_y {
+        return fragments;
+    }
+    
     let total_area = edge_function(
         v0.screen_position.x, v0.screen_position.y,
         v1.screen_position.x, v1.screen_position.y,
@@ -156,11 +203,11 @@ pub fn rasterize_triangle_lod(triangle: &Triangle, skip_factor: i32) -> Vec<Frag
     
     let inv_total_area = 1.0 / total_area;
     
-    // Iterar con saltos (LOD)
-    let mut y = min_y;
-    while y <= max_y {
-        let mut x = min_x;
-        while x <= max_x {
+    // Iterar con saltos (LOD) usando la bounding box CLIPEADA
+    let mut y = clipped_min_y;
+    while y <= clipped_max_y {
+        let mut x = clipped_min_x;
+        while x <= clipped_max_x {
             let px = x as f32 + 0.5;
             let py = y as f32 + 0.5;
             

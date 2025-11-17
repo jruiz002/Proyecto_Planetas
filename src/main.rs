@@ -79,6 +79,11 @@ fn main() {
             .cloned()
             .collect();
         camera.avoid_collision(&all_bodies);
+        
+        // OPTIMIZACIÓN: Aplicar límites de distancia mínima
+        // Evita que la cámara se acerque tanto que genere millones de fragmentos
+        // Esto previene caídas de FPS cuando hay planetas grandes muy cerca
+        camera.enforce_minimum_distance(&all_bodies);
 
         // Clear framebuffer
         framebuffer.clear();
