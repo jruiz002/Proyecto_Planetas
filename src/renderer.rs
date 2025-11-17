@@ -27,10 +27,10 @@ pub struct Renderer {
 impl Renderer {
     pub fn new(screen_width: f32, screen_height: f32) -> Self {
         let projection_matrix = create_projection_matrix(
-            PI / 4.0,
-            screen_width / screen_height,
-            0.1,
-            1000.0,
+            PI / 4.0,                    // FOV: 45 grados (campo de visión)
+            screen_width / screen_height, // Aspect ratio
+            5.0,                         // Near plane: 5.0 - evita que planetas atraviesen
+            1500.0,                      // Far plane: 1500.0 (antes 1000.0) - alcance más lejano
         );
 
         let viewport_matrix = create_viewport_matrix(0.0, 0.0, screen_width, screen_height);
@@ -387,7 +387,12 @@ impl Renderer {
     pub fn resize(&mut self, new_width: f32, new_height: f32) {
         self.screen_width = new_width;
         self.screen_height = new_height;
-        self.projection_matrix = create_projection_matrix(PI / 4.0, new_width / new_height, 0.1, 1000.0);
+        self.projection_matrix = create_projection_matrix(
+            PI / 4.0, 
+            new_width / new_height, 
+            5.0,      // Near plane consistente con el constructor
+            1500.0    // Far plane consistente con el constructor
+        );
         self.viewport_matrix = create_viewport_matrix(0.0, 0.0, new_width, new_height);
     }
 }
