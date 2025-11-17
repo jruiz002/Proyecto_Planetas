@@ -2,6 +2,15 @@
 
 Proyecto de renderizado 3D en tiempo real utilizando un **Software Rasterizer** completamente personalizado en Rust. El sistema implementa un pipeline gráfico modular desde cero, sin uso de GPU, renderizando un sistema solar interactivo con planetas, lunas, anillos y efectos visuales.
 
+## 🎥 Video Demostración
+
+[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/XiVDTe3HVvQ/maxresdefault.jpg)](https://youtu.be/XiVDTe3HVvQ)
+
+*Haz clic en la imagen para ver el video completo en YouTube*
+
+---
+
+## ✅ Retroalimentación del Profesor
 
 - ✅ **Framebuffer personalizado**: Sistema de buffer de píxeles propio (960,000 píxeles)
 - ✅ **Pipeline en etapas separadas**: 4 módulos independientes (vertex → assembly → rasterizer → fragment)

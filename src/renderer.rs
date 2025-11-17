@@ -35,11 +35,11 @@ impl Renderer {
 
         let sphere_model = match ObjModel::load("assets/sphere.obj") {
             Ok(model) => {
-                println!("✅ Sphere model loaded: {} vertices", model.vertices.len());
+                println!("Sphere model loaded: {} vertices", model.vertices.len());
                 Some(model)
             }
             Err(e) => {
-                eprintln!("❌ Error loading sphere.obj: {}", e);
+                eprintln!("Error loading sphere.obj: {}", e);
                 None
             }
         };

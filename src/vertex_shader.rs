@@ -22,16 +22,6 @@ pub struct VertexShaderOutput {
 }
 
 /// Vertex Shader - Transforma un vértice usando las 4 matrices
-///
-/// # Pipeline de Transformación:
-/// ```text
-/// Vertex (modelo) 
-///   → Model Matrix (escala + traslación)
-///   → View Matrix (cámara)
-///   → Projection Matrix (perspectiva)
-///   → Viewport Matrix (pantalla)
-///   → Screen Position
-/// ```
 pub fn vertex_shader(
     vertex_position: Vector3,
     vertex_normal: Vector3,
