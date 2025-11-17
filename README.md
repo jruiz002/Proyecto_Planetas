@@ -4,7 +4,7 @@ Proyecto de renderizado 3D en tiempo real utilizando un **Software Rasterizer** 
 
 ## 🎥 Video Demostración
 
-[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/XiVDTe3HVvQ/maxresdefault.jpg)](https://youtu.be/XiVDTe3HVvQ)
+[![Simulador del Sistema Solar - Video Demostración](https://img.youtube.com/vi/lhfNihoNusI/maxresdefault.jpg)](https://youtu.be/lhfNihoNusI)
 
 *Haz clic en la imagen para ver el video completo en YouTube*
 
