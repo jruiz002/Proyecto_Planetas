@@ -10,7 +10,7 @@ Proyecto de renderizado 3D en tiempo real utilizando un **Software Rasterizer** 
 
 ---
 
-## ✅ Retroalimentación del Profesor
+## Importante
 
 - ✅ **Framebuffer personalizado**: Sistema de buffer de píxeles propio (960,000 píxeles)
 - ✅ **Pipeline en etapas separadas**: 4 módulos independientes (vertex → assembly → rasterizer → fragment)
@@ -49,7 +49,6 @@ Proyecto de renderizado 3D en tiempo real utilizando un **Software Rasterizer** 
 | Tecla | Función |
 |-------|---------|
 | **Mouse** | Rotar cámara orbital |
-| **Rueda Mouse** | Zoom in/out |
 | **W/A/S/D** | Movimiento horizontal |
 | **Q/E** | Subir/bajar |
 | **1-5** | Warp animado a planetas |
